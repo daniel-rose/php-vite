@@ -255,6 +255,24 @@ test(
 );
 
 test(
+    "escapes `<` so the import map can't close its script tag",
+    function () {
+        $vite = new Manifest(
+            dev: false,
+            manifest_path: __DIR__.'/fixtures/manifest.json',
+            base_path: '/dist/',
+            import_map_path: __DIR__.'/fixtures/importmap-markup.json'
+        );
+
+        eq(
+            $vite->createTags("main.js")->importmap,
+            '<script type="importmap">{"imports":{"/dist/a.js":"/dist/\u003C/script>.js"}}</script>',
+            "production mode: `<` is unicode-escaped"
+        );
+    }
+);
+
+test(
     "should throw an exception when the import map is not found",
     function () {
         expect(

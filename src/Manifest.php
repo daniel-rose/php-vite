@@ -309,6 +309,10 @@ class Manifest
 
         $json = trim(file_get_contents($this->import_map_path));
 
+        // `<` can only occur inside JSON strings, so its unicode escape keeps `</script>` out:
+
+        $json = str_replace('<', '\u003C', $json);
+
         return "<script type=\"importmap\">{$json}</script>";
     }
 
