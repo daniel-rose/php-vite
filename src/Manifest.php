@@ -19,11 +19,6 @@ class Manifest
      */
     private array $preload_types = [];
 
-    /**
-     * @var object|null the decoded import map, or `null` if none was configured.
-     */
-    private ?object $import_map = null;
-
     public function __construct(
         /**
          * Indicates whether the application is running in development mode.
@@ -83,18 +78,12 @@ class Manifest
                 json_decode(file_get_contents($this->manifest_path), true)
             );
 
-            if ($this->import_map_path !== null) {
-                if (!is_readable($this->import_map_path)) {
-                    throw new RuntimeException(
-                        file_exists($this->import_map_path)
-                        ? "Import map file is not readable: {$this->import_map_path}"
-                        : "Import map file not found: {$this->import_map_path}"
-                    );
-                }
-
-                // Decoded as objects rather than arrays, so an empty `imports` stays `{}`:
-
-                $this->import_map = json_decode(file_get_contents($this->import_map_path), false, 512, JSON_THROW_ON_ERROR);
+            if ($this->import_map_path !== null && !is_readable($this->import_map_path)) {
+                throw new RuntimeException(
+                    file_exists($this->import_map_path)
+                    ? "Import map file is not readable: {$this->import_map_path}"
+                    : "Import map file not found: {$this->import_map_path}"
+                );
             }
         }
     }
@@ -314,16 +303,11 @@ class Manifest
 
     private function createImportMapTag(): string
     {
-        if ($this->import_map === null) {
+        if ($this->import_map_path === null) {
             return '';
         }
 
-        // Re-encoded rather than echoed, so `<` is escaped and no value can close the script tag:
-
-        $json = json_encode(
-            $this->import_map,
-            JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_THROW_ON_ERROR
-        );
+        $json = trim(file_get_contents($this->import_map_path));
 
         return "<script type=\"importmap\">{$json}</script>";
     }

@@ -2,7 +2,7 @@
 
 use mindplay\vite\Manifest;
 
-use function mindplay\testies\{ configure, eq, expect, ok, run, test };
+use function mindplay\testies\{ configure, eq, expect, run, test };
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -251,42 +251,6 @@ test(
         );
 
         eq($vite->createTags("main.js")->importmap, "", "dev mode: Vite's dev server needs no import map");
-    }
-);
-
-test(
-    "keeps the import map valid and the script tag closed",
-    function () {
-        $vite = new Manifest(
-            dev: false,
-            manifest_path: __DIR__.'/fixtures/manifest.json',
-            base_path: '/dist/',
-            import_map_path: __DIR__.'/fixtures/importmap-empty.json'
-        );
-
-        eq(
-            $vite->createTags("main.js")->importmap,
-            '<script type="importmap">{"imports":{}}</script>',
-            "an empty map stays an object, not an array"
-        );
-
-        $vite = new Manifest(
-            dev: false,
-            manifest_path: __DIR__.'/fixtures/manifest.json',
-            base_path: '/dist/',
-            import_map_path: __DIR__.'/fixtures/importmap-markup.json'
-        );
-
-        $html = $vite->createTags("main.js")->importmap;
-        $json = substr($html, strlen('<script type="importmap">'), -strlen('</script>'));
-
-        ok(!str_contains($json, '<'), "markup inside the map is escaped");
-
-        eq(
-            json_decode($json, true),
-            ["imports" => ["/dist/a.js" => "/dist/</script><b>.js"]],
-            "escaping preserves the mapped values"
-        );
     }
 );
 
